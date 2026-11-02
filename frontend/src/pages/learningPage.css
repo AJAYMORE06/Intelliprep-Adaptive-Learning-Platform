@@ -415,7 +415,9 @@
   color: #202938;
   font-family: inherit;
   font-size: 20px;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .learning-topic-field input::placeholder {
@@ -443,7 +445,9 @@
   font-size: 16px;
   font-weight: 650;
   white-space: nowrap;
-  transition: background 180ms ease, box-shadow 180ms ease;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .learning-generate-button:not(:disabled):hover {
@@ -481,7 +485,7 @@
   }
 }
 
-.question-card-section{
+.question-card-section {
   padding: 32px;
   border: 1px solid #e4e9f2;
   border-radius: 22px;

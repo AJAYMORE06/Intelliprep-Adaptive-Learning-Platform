@@ -1,6 +1,4 @@
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 export interface HealthResponse {
   status: string;
@@ -43,7 +41,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
 export async function apiFetch(
   input: RequestInfo | URL,
-  init: RequestInit = {},
+  init: RequestInit = {}
 ): Promise<Response> {
   const headers = new Headers(init.headers);
   const token = sessionStorage.getItem("access_token");

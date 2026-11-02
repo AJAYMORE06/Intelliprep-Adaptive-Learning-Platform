@@ -1,4 +1,3 @@
-
 import { Navigate, Outlet } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -23,9 +22,7 @@ function logout() {
   });
 }
 
-export default function ProtectedRoute({
-  allowedRoles,
-}: ProtectedRouteProps) {
+export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const token = sessionStorage.getItem("access_token");
   const role = sessionStorage.getItem("user_role")?.trim().toLowerCase();
 
@@ -43,40 +40,30 @@ export default function ProtectedRoute({
     const scheduleFromLastActivity = () => {
       clearTimers();
 
-      const lastActivity = Number(
-        sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now()
-      );
+      const lastActivity = Number(sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now());
 
-      const remaining =
-        INACTIVITY_LIMIT_MS - (Date.now() - lastActivity);
+      const remaining = INACTIVITY_LIMIT_MS - (Date.now() - lastActivity);
 
       if (remaining <= 0) {
         logout();
         return;
       }
 
-      const warningDelay =
-        remaining - WARNING_BEFORE_LOGOUT_MS;
+      const warningDelay = remaining - WARNING_BEFORE_LOGOUT_MS;
 
       if (warningDelay <= 0) {
         warningTimeout = setTimeout(showInactivityWarning, 0);
       } else {
-        warningTimeout = setTimeout(
-          showInactivityWarning,
-          warningDelay
-        );
+        warningTimeout = setTimeout(showInactivityWarning, warningDelay);
       }
 
       logoutTimeout = setTimeout(logout, remaining);
     };
 
     function showInactivityWarning() {
-      const lastActivity = Number(
-        sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now()
-      );
+      const lastActivity = Number(sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now());
 
-      const remaining =
-        INACTIVITY_LIMIT_MS - (Date.now() - lastActivity);
+      const remaining = INACTIVITY_LIMIT_MS - (Date.now() - lastActivity);
 
       if (remaining <= 0) {
         logout();
@@ -89,10 +76,7 @@ export default function ProtectedRoute({
       );
 
       if (stayLoggedIn) {
-        sessionStorage.setItem(
-          LAST_ACTIVITY_KEY,
-          String(Date.now())
-        );
+        sessionStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
         scheduleFromLastActivity();
       } else {
         logout();
@@ -100,18 +84,13 @@ export default function ProtectedRoute({
     }
 
     const resetInactivityTimer = () => {
-      sessionStorage.setItem(
-        LAST_ACTIVITY_KEY,
-        String(Date.now())
-      );
+      sessionStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
       scheduleFromLastActivity();
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        const lastActivity = Number(
-          sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now()
-        );
+        const lastActivity = Number(sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now());
 
         if (Date.now() - lastActivity >= INACTIVITY_LIMIT_MS) {
           logout();
@@ -121,9 +100,7 @@ export default function ProtectedRoute({
       }
     };
 
-    const lastActivity = Number(
-      sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now()
-    );
+    const lastActivity = Number(sessionStorage.getItem(LAST_ACTIVITY_KEY) || Date.now());
 
     if (Date.now() - lastActivity >= INACTIVITY_LIMIT_MS) {
       logout();
@@ -147,10 +124,7 @@ export default function ProtectedRoute({
       });
     });
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearTimers();
@@ -159,10 +133,7 @@ export default function ProtectedRoute({
         window.removeEventListener(event, resetInactivityTimer);
       });
 
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [token]);
 

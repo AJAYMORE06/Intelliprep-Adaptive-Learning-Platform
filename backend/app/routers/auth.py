@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 password_hash = PasswordHash.recommended()
 
+
 def create_refresh_token(user_id: int) -> str:
     now = datetime.now(UTC)
 
@@ -46,6 +47,7 @@ def create_refresh_token(user_id: int) -> str:
         algorithm=JWT_ALGORITHM,
     )
 
+
 def set_refresh_cookie(response: Response, refresh_token: str) -> None:
     is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
@@ -58,6 +60,7 @@ def set_refresh_cookie(response: Response, refresh_token: str) -> None:
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         path=REFRESH_COOKIE_PATH,
     )
+
 
 def get_db():
     db = SessionLocal()
@@ -111,16 +114,13 @@ load_dotenv()
 JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-REFRESH_TOKEN_EXPIRE_DAYS = int(
-    os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7")
-)
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
 REFRESH_COOKIE_NAME = "intelliprep_refresh"
 REFRESH_COOKIE_PATH = "/api/auth"
 
 
 @router.post("/login", response_model=TokenResponse)
-
 @router.post("/login", response_model=TokenResponse)
 def login_user(
     payload: LoginRequest,
@@ -131,9 +131,7 @@ def login_user(
 
     user = db.scalar(select(User).where(User.email == normalized_email))
 
-    if user is None or not password_hash.verify(
-        payload.password, user.password_hash
-    ):
+    if user is None or not password_hash.verify(payload.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
@@ -166,7 +164,6 @@ def login_user(
             "role": "admin" if user.is_admin else "student",
         },
     }
-
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -301,7 +298,6 @@ def reset_password(
     db.commit()
 
     return {"message": "Password reset successfully."}
-
 
 
 @router.post("/logout")

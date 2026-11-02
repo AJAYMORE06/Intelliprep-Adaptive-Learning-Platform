@@ -137,16 +137,13 @@ export default function LearningPage() {
     setError("");
 
     try {
-      const response = await apiFetch(
-      `${API_BASE_URL}/api/learning/generate-questions`,
-      {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic: trimmedTopic }),
+      const response = await apiFetch(`${API_BASE_URL}/api/learning/generate-questions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );    
+        body: JSON.stringify({ topic: trimmedTopic }),
+      });
 
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -300,45 +297,45 @@ export default function LearningPage() {
       {questions.length === 0 && (
         <section className="question-card">
           <div className="question-card-section">
-          <p className="learning-eyebrow">PERSONALISED PRACTICE</p>
-          <p>
-            Generating 10 technical interview questions, progressing from beginner to exceptional
-            difficulty. This will take a while.
-          </p>
-          <form className="learning-topic-form" onSubmit={generateQuestions}>
-  <div className="learning-topic-row">
-    <div className="learning-topic-field">
-      <label htmlFor="learning-topic">Technical stack</label>
+            <p className="learning-eyebrow">PERSONALISED PRACTICE</p>
+            <p>
+              Generating 10 technical interview questions, progressing from beginner to exceptional
+              difficulty. This will take a while.
+            </p>
+            <form className="learning-topic-form" onSubmit={generateQuestions}>
+              <div className="learning-topic-row">
+                <div className="learning-topic-field">
+                  <label htmlFor="learning-topic">Technical stack</label>
 
-      <input
-        id="learning-topic"
-        type="text"
-        value={topic}
-        onChange={(event) => setTopic(event.target.value)}
-        placeholder="e.g. Angular, Python, SQL"
-        minLength={2}
-        maxLength={100}
-        required
-        disabled={generating}
-      />
-    </div>
+                  <input
+                    id="learning-topic"
+                    type="text"
+                    value={topic}
+                    onChange={(event) => setTopic(event.target.value)}
+                    placeholder="e.g. Angular, Python, SQL"
+                    minLength={2}
+                    maxLength={100}
+                    required
+                    disabled={generating}
+                  />
+                </div>
 
-    <button
-      type="submit"
-      className="submit-answer-button learning-generate-button"
-      disabled={generating || topic.trim().length < 2}
-    >
-      {generating ? "Generating questions..." : "Generate 10 questions"}
-    </button>
-  </div>
+                <button
+                  type="submit"
+                  className="submit-answer-button learning-generate-button"
+                  disabled={generating || topic.trim().length < 2}
+                >
+                  {generating ? "Generating questions..." : "Generate 10 questions"}
+                </button>
+              </div>
 
-  {error && (
-    <p className="learning-error" role="alert">
-      {error}
-    </p>
-  )}
-</form>
-</div>
+              {error && (
+                <p className="learning-error" role="alert">
+                  {error}
+                </p>
+              )}
+            </form>
+          </div>
         </section>
       )}
 

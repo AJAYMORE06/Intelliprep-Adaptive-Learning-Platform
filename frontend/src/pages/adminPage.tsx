@@ -78,6 +78,25 @@ interface AdminFeedback {
   submitted_at: string;
 }
 
+interface StackPerformanceRecord {
+  user_id: number;
+  student_name: string;
+  student_email: string | null;
+  topic: string;
+  session_id: string;
+  overall_score: number;
+  lowest_score: number;
+  session_date: string;
+}
+
+interface StackPerformanceResponse {
+  total_students: number;
+  total_stacks: number;
+  total_records: number;
+  average_latest_score: number | null;
+  records: StackPerformanceRecord[];
+}
+
 interface AdminAllSession extends AdminSession {
   user_id: number;
   student_name: string;
@@ -120,9 +139,14 @@ export default function AdminPage() {
 
   const [sessionReportLoading, setSessionReportLoading] = useState(false);
 
+  const [stackPerformance, setStackPerformance] = useState<StackPerformanceResponse | null>(null);
+
+  const [stackPerformanceLoading, setStackPerformanceLoading] = useState(false);
+
+  const [stackPerformanceError, setStackPerformanceError] = useState("");
+
   const [sessionReportError, setSessionReportError] = useState("");
-  const [selectedFeedback, setSelectedFeedback] =
-  useState<AdminFeedback | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<AdminFeedback | null>(null);
   const handleLogout = () => {
     sessionStorage.removeItem("access_token");
     window.location.href = "/login";
@@ -163,7 +187,9 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (activeSection === "students") {
+    if (activeSection === "overview") {
+      void loadStackPerformance();
+    } else if (activeSection === "students") {
       void loadStudents(searchTerm);
     } else if (activeSection === "sessions") {
       void loadAllSessions();
@@ -243,7 +269,7 @@ export default function AdminPage() {
         throw new Error("Unexpected response from the students API.");
       }
 
-      setStudents(body as AdminStudent[]);
+      setStudents((body as AdminStudent[]).filter((student) => student.id !== 3));
     } catch (err) {
       setStudentsError(err instanceof Error ? err.message : "Unable to load students.");
     } finally {
@@ -339,6 +365,23 @@ export default function AdminPage() {
     }
   }
 
+  async function loadStackPerformance() {
+    setStackPerformanceLoading(true);
+    setStackPerformanceError("");
+
+    try {
+      const data = await fetchAdminData<StackPerformanceResponse>("/api/admin/stack-performance");
+
+      setStackPerformance(data);
+    } catch (err) {
+      setStackPerformanceError(
+        err instanceof Error ? err.message : "Unable to load stack performance."
+      );
+    } finally {
+      setStackPerformanceLoading(false);
+    }
+  }
+
   async function loadSessionReport(sessionId: string, userId: number) {
     setSessionReport(null);
     setSessionReportError("");
@@ -356,6 +399,25 @@ export default function AdminPage() {
       setSessionReportLoading(false);
     }
   }
+
+  const performanceRecords = stackPerformance?.records ?? [];
+
+  const averageLowestScore =
+    performanceRecords.length > 0
+      ? performanceRecords.reduce((total, record) => total + record.lowest_score, 0) /
+        performanceRecords.length
+      : null;
+
+  const averageLatestScore =
+    performanceRecords.length > 0
+      ? performanceRecords.reduce((total, record) => total + record.overall_score, 0) /
+        performanceRecords.length
+      : null;
+
+  const averageScoreChange =
+    averageLatestScore !== null && averageLowestScore !== null
+      ? averageLatestScore - averageLowestScore
+      : null;
 
   return (
     <div className="admin-layout">
@@ -469,9 +531,10 @@ export default function AdminPage() {
               <section className="learning-outcomes">
                 <div className="learning-outcomes__header">
                   <div>
-                    <h2>Before &amp; After Learning Outcomes</h2>
+                    <h2>Overall Learning Progress</h2>
                     <p>
-                      Compare technical interview performance before and after using IntelliPrep.
+                      Compare students' lowest and latest technical interview performance across
+                      completed sessions.
                     </p>
                   </div>
                   <span className="learning-outcomes__badge">Study outcomes</span>
@@ -479,40 +542,168 @@ export default function AdminPage() {
 
                 <div className="learning-outcomes__grid">
                   <article className="learning-outcomes__card">
-                    <span className="learning-outcomes__label">Pre-assessment average</span>
+                    <span className="learning-outcomes__label">Average Lowest Score</span>
                     <div className="learning-outcomes__score">
-                      <span>—</span>
+                      <span>
+                        {averageLowestScore !== null ? averageLowestScore.toFixed(1) : "—"}
+                      </span>
                       <small>/ 100</small>
                     </div>
-                    <p>Before using IntelliPrep</p>
+                    <p>Average of students' lowest completed session scores</p>
                   </article>
 
                   <article className="learning-outcomes__card">
-                    <span className="learning-outcomes__label">Post-assessment average</span>
+                    <span className="learning-outcomes__label">Average Latest Score</span>
                     <div className="learning-outcomes__score">
-                      <span>—</span>
+                      <span>
+                        {averageLatestScore !== null ? averageLatestScore.toFixed(1) : "—"}
+                      </span>
                       <small>/ 100</small>
                     </div>
-                    <p>After using IntelliPrep</p>
+                    <p>Average of students' latest completed session scores</p>
                   </article>
 
                   <article className="learning-outcomes__card learning-outcomes__card--change">
-                    <span className="learning-outcomes__label">Score improvement</span>
+                    <span className="learning-outcomes__label">Average Score Change</span>
                     <div className="learning-outcomes__score">
-                      <span>—</span>
+                      <span>
+                        {averageScoreChange !== null
+                          ? `${averageScoreChange > 0 ? "+" : ""}${averageScoreChange.toFixed(1)}`
+                          : "—"}
+                      </span>
                       <small>points</small>
                     </div>
-                    <p>Post-assessment average minus pre-assessment average</p>
+                    <p>Latest score average minus lowest score average</p>
                   </article>
                 </div>
 
                 <div className="learning-outcomes__note">
-                  <strong>Awaiting study data</strong>
-                  <p>
-                    Results will appear when participants have completed both assessments and their
-                    scores have been recorded.
-                  </p>
+                  {stackPerformanceLoading ? (
+                    <>
+                      <strong>Loading study outcomes</strong>
+                      <p>Calculating performance averages...</p>
+                    </>
+                  ) : stackPerformanceError ? (
+                    <>
+                      <strong>Unable to load study outcomes</strong>
+                      <p>{stackPerformanceError}</p>
+                    </>
+                  ) : performanceRecords.length === 0 ? (
+                    <>
+                      <strong>Awaiting study data</strong>
+                      <p>
+                        Results will appear when students have completed their interview preparation
+                        sessions and their scores have been recorded.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Study data available -</strong>
+                      <span>
+                        Based on {performanceRecords.length} completed student–technical-stack
+                        records.
+                      </span>
+                    </>
+                  )}
                 </div>
+              </section>
+
+              <section className="stack-performance-section">
+                <div className="stack-performance-header">
+                  <div>
+                    <h2>Student Performance by Technical Stack</h2>
+                    <p>Latest completed assessment for each student and technical stack.</p>
+                  </div>
+                  <span className="stack-performance-count">
+                    {stackPerformance?.records.length ?? 0} records
+                  </span>
+                </div>
+
+                {stackPerformanceLoading ? (
+                  <div className="stack-performance-empty">Loading student performance…</div>
+                ) : stackPerformanceError ? (
+                  <div className="admin-error" role="alert">
+                    {stackPerformanceError}
+                    <button onClick={() => void loadStackPerformance()}>Retry</button>
+                  </div>
+                ) : !stackPerformance?.records.length ? (
+                  <div className="stack-performance-empty">
+                    <h3>No assessment records yet</h3>
+                    <p>
+                      Student performance will appear here after completed assessments have been
+                      scored.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="stack-performance-tags">
+                      <span className="stack-performance-tag">
+                        {new Set(stackPerformance.records.map((r) => r.user_id)).size} Students
+                      </span>
+
+                      <span className="stack-performance-tag">
+                        {new Set(stackPerformance.records.map((r) => r.topic.toLowerCase())).size}{" "}
+                        Technical stacks
+                      </span>
+                    </div>
+
+                    <div className="students-table-wrap">
+                      <table className="students-table stack-performance-table">
+                        <thead>
+                          <tr>
+                            <th>Student</th>
+                            <th>Technical stack</th>
+                            <th>Lowest Score</th>
+                            <th>Latest score</th>
+                            <th>Score Change</th>
+                            <th>Session date</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {stackPerformance.records.map((record) => (
+                            <tr key={`${record.user_id}-${record.topic}-${record.session_id}`}>
+                              <td>
+                                <div className="student-identity">
+                                  <div className="student-avatar">
+                                    {(record.student_name || "S").trim().charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <strong>{record.student_name}</strong>
+                                    <span>{record.student_email || "—"}</span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td>
+                                <span className="stack-topic">{record.topic}</span>
+                              </td>
+                              <td>
+                                <strong className="stack-score">{record.lowest_score}/100</strong>
+                              </td>
+                              <td>
+                                <strong className="stack-score">
+                                  {record.overall_score.toFixed(1)} / 100
+                                </strong>
+                              </td>
+                              <td>
+                                <strong className="stack-score">
+                                  {record.overall_score - record.lowest_score > 0 ? "+" : ""}
+                                  {record.overall_score - record.lowest_score}
+                                </strong>
+                              </td>
+                              <td>
+                                {record.session_date
+                                  ? new Date(record.session_date).toLocaleDateString()
+                                  : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </section>
             </>
           )}
@@ -1184,143 +1375,128 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="feedback-list">
-              {feedbackEntries.map((item) => {
-                const suggestion = item.improvements?.trim();
-                const hasSuggestion =
-                  suggestion &&
-                  !["na", "n/a", "none"].includes(suggestion.toLowerCase());
+                  {feedbackEntries.map((item) => {
+                    const suggestion = item.improvements?.trim();
+                    const hasSuggestion =
+                      suggestion && !["na", "n/a", "none"].includes(suggestion.toLowerCase());
 
-                return (
-                  <article className="feedback-list-row" key={item.id}>
-                    <div className="feedback-list-student">
-                      <div className="feedback-avatar">
-                        {(item.student_name || "S").trim().charAt(0).toUpperCase()}
-                      </div>
+                    return (
+                      <article className="feedback-list-row" key={item.id}>
+                        <div className="feedback-list-student">
+                          <div className="feedback-avatar">
+                            {(item.student_name || "S").trim().charAt(0).toUpperCase()}
+                          </div>
 
+                          <div>
+                            <strong>{item.student_name || "Unnamed student"}</strong>
+                            <span>
+                              {item.submitted_at
+                                ? new Date(item.submitted_at).toLocaleDateString()
+                                : "Date unavailable"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="feedback-list-rating">
+                          <span aria-hidden="true">★</span>
+                          <strong>{item.rating}/5</strong>
+                        </div>
+
+                        <div className="feedback-list-suggestion">
+                          <span>Suggestion</span>
+                          <p>
+                            {hasSuggestion ? suggestion : "No improvement suggestions provided."}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="feedback-view-button"
+                          onClick={() => setSelectedFeedback(item)}
+                        >
+                          View details
+                        </button>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+
+              {selectedFeedback && (
+                <div className="feedback-modal-overlay" onClick={() => setSelectedFeedback(null)}>
+                  <section
+                    className="feedback-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="feedback-modal-title"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="feedback-modal-header">
                       <div>
-                        <strong>{item.student_name || "Unnamed student"}</strong>
-                        <span>
-                          {item.submitted_at
-                            ? new Date(item.submitted_at).toLocaleDateString()
-                            : "Date unavailable"}
-                        </span>
+                        <span className="feedback-modal-eyebrow">STUDENT FEEDBACK</span>
+                        <h2 id="feedback-modal-title">
+                          {selectedFeedback.student_name || "Student response"}
+                        </h2>
+                        <p>
+                          Submitted{" "}
+                          {selectedFeedback.submitted_at
+                            ? new Date(selectedFeedback.submitted_at).toLocaleString()
+                            : "date unavailable"}
+                        </p>
                       </div>
+
+                      <button
+                        type="button"
+                        className="feedback-modal-close"
+                        onClick={() => setSelectedFeedback(null)}
+                        aria-label="Close feedback details"
+                      >
+                        ✕
+                      </button>
                     </div>
 
-                    <div className="feedback-list-rating">
-                      <span aria-hidden="true">★</span>
-                      <strong>{item.rating}/5</strong>
+                    <div className="feedback-modal-rating">
+                      <span>Overall experience</span>
+                      <strong>★ {selectedFeedback.rating} / 5</strong>
                     </div>
 
-                    <div className="feedback-list-suggestion">
-                      <span>Suggestion</span>
+                    <div className="feedback-modal-details">
+                      <article>
+                        <span>Ease of use</span>
+                        <strong>{selectedFeedback.ease_of_use || "Not provided"}</strong>
+                      </article>
+
+                      <article>
+                        <span>Hint usefulness</span>
+                        <strong>{selectedFeedback.hint_usefulness || "Not provided"}</strong>
+                      </article>
+
+                      <article>
+                        <span>Would recommend IntelliPrep?</span>
+                        <strong>{selectedFeedback.recommendation || "Not provided"}</strong>
+                      </article>
+                    </div>
+
+                    <div className="feedback-modal-suggestion">
+                      <h3>Suggestions for improvement</h3>
                       <p>
-                        {hasSuggestion
-                          ? suggestion
+                        {selectedFeedback.improvements?.trim() &&
+                        !["na", "n/a", "none"].includes(
+                          selectedFeedback.improvements.trim().toLowerCase()
+                        )
+                          ? selectedFeedback.improvements
                           : "No improvement suggestions provided."}
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      className="feedback-view-button"
-                      onClick={() => setSelectedFeedback(item)}
-                    >
-                      View details
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
+                    <div className="feedback-modal-footer">
+                      <button type="button" onClick={() => setSelectedFeedback(null)}>
+                        Close details
+                      </button>
+                    </div>
+                  </section>
+                </div>
               )}
-
-              {selectedFeedback && (
-  <div
-    className="feedback-modal-overlay"
-    onClick={() => setSelectedFeedback(null)}
-  >
-    <section
-      className="feedback-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="feedback-modal-title"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="feedback-modal-header">
-        <div>
-          <span className="feedback-modal-eyebrow">STUDENT FEEDBACK</span>
-          <h2 id="feedback-modal-title">
-            {selectedFeedback.student_name || "Student response"}
-          </h2>
-          <p>
-            Submitted{" "}
-            {selectedFeedback.submitted_at
-              ? new Date(selectedFeedback.submitted_at).toLocaleString()
-              : "date unavailable"}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="feedback-modal-close"
-          onClick={() => setSelectedFeedback(null)}
-          aria-label="Close feedback details"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className="feedback-modal-rating">
-        <span>Overall experience</span>
-        <strong>
-          ★ {selectedFeedback.rating} / 5
-        </strong>
-      </div>
-
-      <div className="feedback-modal-details">
-        <article>
-          <span>Ease of use</span>
-          <strong>{selectedFeedback.ease_of_use || "Not provided"}</strong>
-        </article>
-
-        <article>
-          <span>Hint usefulness</span>
-          <strong>
-            {selectedFeedback.hint_usefulness || "Not provided"}
-          </strong>
-        </article>
-
-        <article>
-          <span>Would recommend IntelliPrep?</span>
-          <strong>
-            {selectedFeedback.recommendation || "Not provided"}
-          </strong>
-        </article>
-      </div>
-
-      <div className="feedback-modal-suggestion">
-        <h3>Suggestions for improvement</h3>
-        <p>
-          {selectedFeedback.improvements?.trim() &&
-          !["na", "n/a", "none"].includes(
-            selectedFeedback.improvements.trim().toLowerCase()
-          )
-            ? selectedFeedback.improvements
-            : "No improvement suggestions provided."}
-        </p>
-      </div>
-
-      <div className="feedback-modal-footer">
-        <button
-          type="button"
-          onClick={() => setSelectedFeedback(null)}
-        >
-          Close details
-        </button>
-      </div>
-    </section>
-  </div>
-)}
             </section>
           )}
 

@@ -45,10 +45,7 @@ def _session_summary(
         .all()
     )
 
-    attempts_by_question = {
-    str(attempt.question_id): attempt
-        for attempt in attempts
-    }
+    attempts_by_question = {str(attempt.question_id): attempt for attempt in attempts}
 
     scores = [
         attempts_by_question[str(q.id)].score
@@ -82,10 +79,7 @@ def _session_summary(
         "questions_answered": answered_count,
         "is_complete": is_complete,
         "status": status,
-        "average_score": (
-            round(sum(scores) / len(scores), 2) if scores else None
-        ),
-
+        "average_score": (round(sum(scores) / len(scores), 2) if scores else None),
         "overall_score": (
             round(sum(scores), 2)
             if scores
@@ -171,7 +165,7 @@ def get_admin_feedback(
 def get_admin_overview(
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    total_users = db.query(User).count()
+    total_users = db.query(User).filter(User.is_admin.is_(False)).count()
 
     session_rows = (
         db.query(
@@ -457,7 +451,7 @@ def get_admin_session_report(
     answered_count = sum(1 for q in report_questions if q["answered"])
 
     overall_score = (
-        round(average_score *  len(questions), 2)
+        round(average_score * len(questions), 2)
         if average_score is not None
         and answered_count == len(questions)
         and len(scored_values) == len(questions)
@@ -484,4 +478,92 @@ def get_admin_session_report(
         "average_score": average_score,
         "overall_score": overall_score,
         "questions": report_questions,
+    }
+
+
+@router.get("/stack-performance")
+def get_stack_performance(
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+
+    session_rows = (
+        db.query(
+            GeneratedQuestionRecord.user_id,
+            GeneratedQuestionRecord.session_id,
+        )
+        .distinct()
+        .all()
+    )
+
+    latest_by_stack: dict[tuple[int, str], dict[str, Any]] = {}
+    lowest_by_stack: dict[tuple[int, str], float] = {}
+
+    for user_id, session_id in session_rows:
+        user = db.get(User, user_id)
+
+        # Exclude administrator accounts.
+        if user is None or user.is_admin:
+            continue
+
+        summary = _session_summary(user_id, session_id, db)
+
+        if summary is None or not summary["is_complete"]:
+            continue
+
+        # Include only fully scored completed sessions.
+        if summary["overall_score"] is None:
+            continue
+
+        topic = summary["topic"].strip()
+        key = (user_id, topic.casefold())
+        score = summary["overall_score"]
+
+        # Track the lowest score across all qualifying sessions.
+        if key not in lowest_by_stack:
+            lowest_by_stack[key] = score
+        else:
+            lowest_by_stack[key] = min(
+                lowest_by_stack[key],
+                score,
+            )
+
+        record = {
+            "user_id": user_id,
+            "student_name": user.full_name,
+            "student_email": user.email,
+            "topic": topic,
+            "session_id": session_id,
+            "overall_score": score,
+            "session_date": summary["started_at"],
+        }
+
+        # Keep the latest completed session.
+        existing = latest_by_stack.get(key)
+
+        if existing is None or record["session_date"] > existing["session_date"]:
+            latest_by_stack[key] = record
+
+    records = []
+
+    for key, record in latest_by_stack.items():
+        record["lowest_score"] = lowest_by_stack[key]
+        records.append(record)
+
+    records.sort(
+        key=lambda item: (
+            item["student_name"].casefold(),
+            item["topic"].casefold(),
+        ),
+    )
+
+    scores = [item["overall_score"] for item in records]
+
+    return {
+        "total_students": len({item["user_id"] for item in records}),
+        "total_stacks": len({item["topic"].casefold() for item in records}),
+        "total_records": len(records),
+        "average_latest_score": (
+            round(sum(scores) / len(scores), 2) if scores else None
+        ),
+        "records": records,
     }
