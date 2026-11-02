@@ -397,10 +397,24 @@
   }
 
   .dashboard-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+  }
+
+  .dashboard-header > div {
+    min-width: 0;
+  }
+
+  .dashboard-header .logout-button {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .dashboard-hero {
