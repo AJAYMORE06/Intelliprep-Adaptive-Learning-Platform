@@ -1,8 +1,11 @@
 .feedback-page {
+  width: 100%;
+  min-width: 0;
   min-height: 100vh;
   background: #f6f7fb;
   color: #192438;
   padding: 36px clamp(20px, 3vw, 72px) 56px;
+  box-sizing: border-box;
 }
 
 .feedback-error {
@@ -13,7 +16,8 @@
 .feedback-container {
   width: 100%;
   max-width: 1190px;
-  margin: 0 214px;
+  margin: 0 auto;
+  min-width: 0;
 }
 
 .feedback-header {
@@ -212,11 +216,13 @@
   color: #657188;
 }
 
-.feedback-submit-return{
+.feedback-submit-return {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
   padding: 16px 22px;
   border: none;
   border-radius: 12px;
@@ -226,7 +232,7 @@
   font-size: 14px;
   font-weight: 750;
   cursor: pointer;
-  margin-left: 35%;
+  text-align: center;
 }
 
 .feedback-submit-return:hover:not(:disabled) {
@@ -239,12 +245,14 @@
 }
 
 .feedback-submit {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  width: 15%;
-  padding: 16px 22px;
+  align-self: flex-end;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 180px;
+  padding: 15px 24px;
   border: none;
   border-radius: 12px;
   background: #5269d9;
@@ -252,8 +260,11 @@
   font: inherit;
   font-size: 14px;
   font-weight: 750;
+  white-space: normal;
+  text-align: center;
   cursor: pointer;
-  margin-left: 85%;
+  margin: 0;
+  transition: background 160ms ease;
 }
 
 .feedback-submit:hover:not(:disabled) {
@@ -263,6 +274,13 @@
 .feedback-submit:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .feedback-submit {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .feedback-success {
