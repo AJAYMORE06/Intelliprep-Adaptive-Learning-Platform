@@ -75,8 +75,8 @@ export default function FeedbackPage() {
           <p>
             Your responses will help us improve the personalised interview preparation experience.
           </p>
-          <button className="feedback-submit" onClick={() => navigate("/dashboard")}>
-            Return to Home
+          <button className="feedback-submit-return" onClick={() => navigate("/dashboard")}>
+            Return to Dashboard
           </button>
         </section>
       </main>

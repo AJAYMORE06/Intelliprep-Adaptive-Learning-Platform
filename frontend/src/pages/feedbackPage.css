@@ -212,12 +212,11 @@
   color: #657188;
 }
 
-.feedback-submit {
+.feedback-submit-return{
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  width: 20%;
   padding: 16px 22px;
   border: none;
   border-radius: 12px;
@@ -227,7 +226,34 @@
   font-size: 14px;
   font-weight: 750;
   cursor: pointer;
-  margin-left: 80%;
+  margin-left: 35%;
+}
+
+.feedback-submit-return:hover:not(:disabled) {
+  background: #4055c7;
+}
+
+.feedback-submit-return:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.feedback-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 15%;
+  padding: 16px 22px;
+  border: none;
+  border-radius: 12px;
+  background: #5269d9;
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  margin-left: 85%;
 }
 
 .feedback-submit:hover:not(:disabled) {
