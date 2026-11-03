@@ -185,8 +185,9 @@ export default function DashboardPage() {
           <span className="dashboard-stat-icon" aria-hidden="true">
             <ArrowUpRight size={30} strokeWidth={1.8} />
           </span>
-          <p>Practice history</p>
+          <p>Total practice sessions</p>
           <strong>{loading ? "—" : allSession.length}</strong>
+          <small>Includes completed and abandoned sessions</small>
         </article>
       </section>
 
