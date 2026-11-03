@@ -1,9 +1,9 @@
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import Base, engine
 from app.routers import speech
 from app.routers.admin import router as admin_router
 from app.routers.auth import router as auth_router
@@ -13,7 +13,6 @@ from app.routers.userFeedback import router as feedbackRouter
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
     yield
 
 
