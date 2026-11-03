@@ -204,7 +204,7 @@ def get_admin_users(
     search: str | None = Query(default=None, max_length=200),
     db: Session = Depends(get_db),
 ) -> list[dict[str, Any]]:
-    query = db.query(User)
+    query = db.query(User).filter(User.is_admin.is_(False))
 
     if search and search.strip():
         term = f"%{search.strip()}%"
