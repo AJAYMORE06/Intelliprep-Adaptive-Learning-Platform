@@ -1,7 +1,7 @@
 import logging
 import os
 import tempfile
-
+import shutil
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.services.whisperService import transcribe_audio
@@ -27,6 +27,12 @@ ALLOWED_AUDIO_TYPES = {
     "application/octet-stream",
 }
 
+@router.get("/ffmpeg-check")
+def ffmpeg_check():
+    return {
+        "ffmpeg_available": shutil.which("ffmpeg") is not None,
+        "ffmpeg_path": shutil.which("ffmpeg")
+    }
 
 @router.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
