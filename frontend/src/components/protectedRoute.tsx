@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useEffect } from "react";
+import { apiUrl } from "../services/api";
 
 interface ProtectedRouteProps {
   allowedRoles: string[];
@@ -14,7 +15,7 @@ function logout() {
   sessionStorage.removeItem("user_role");
   sessionStorage.removeItem(LAST_ACTIVITY_KEY);
 
-  fetch("http://localhost:8000/api/auth/logout", {
+  fetch(apiUrl("/api/auth/logout"), {
     method: "POST",
     credentials: "include",
   }).finally(() => {

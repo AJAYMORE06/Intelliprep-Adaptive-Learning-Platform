@@ -6,7 +6,7 @@ import FormInput from "../components/auth/formInput";
 import PrimaryButton from "../components/auth/primaryButton";
 
 import "./forgotPasswordPage.css";
-import { apiFetch } from "../services/api";
+import { apiFetch, apiUrl } from "../services/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await apiFetch("http://localhost:8000/api/auth/forgot-password", {
+      const response = await apiFetch(apiUrl("/api/auth/forgot-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),

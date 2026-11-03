@@ -5,6 +5,7 @@ import AuthLayout from "../components/auth/authLayout";
 import FormInput from "../components/auth/formInput";
 import PasswordInput from "../components/auth/passwordInput";
 import PrimaryButton from "../components/auth/primaryButton";
+import { API_BASE_URL } from "../services/api";
 
 import "./loginPage.css";
 
@@ -15,7 +16,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

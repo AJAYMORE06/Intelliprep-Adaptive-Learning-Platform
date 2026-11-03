@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import "./learningPage.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { apiFetch } from "../services/api";
+import { apiFetch, API_BASE_URL } from "../services/api";
 
 type Difficulty = "beginner" | "intermediate" | "expert" | "exceptional";
 
@@ -22,7 +22,6 @@ interface GenerateQuestionsResponse {
   questions: LearningQuestion[];
 }
 
-const API_BASE_URL = "http://localhost:8000";
 
 export default function LearningPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

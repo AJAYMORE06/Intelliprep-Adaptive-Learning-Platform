@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "./reportPage.css";
 import { ChartNoAxesCombined, Check, Target } from "lucide-react";
 import { MessageSquare } from "lucide-react";
-import { apiFetch } from "../services/api";
+import { apiFetch, API_BASE_URL } from "../services/api";
 
 type Difficulty = "beginner" | "intermediate" | "expert" | "exceptional" | string;
 
@@ -37,7 +37,6 @@ type ReportData = {
   evaluation_status?: "pending" | "complete" | "failed" | string;
 };
 
-const API_BASE_URL = "http://localhost:8000";
 
 const DIFFICULTY_LABELS: Record<string, string> = {
   beginner: "Beginner",

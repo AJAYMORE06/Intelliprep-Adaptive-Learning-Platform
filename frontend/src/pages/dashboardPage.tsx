@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./dashboardPage.css";
 import { Layers, CircleGauge, Check, ArrowUpRight } from "lucide-react";
-import { apiFetch } from "../services/api";
+import { apiFetch, API_BASE_URL } from "../services/api";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 type DashboardSession = {
   session_id: string;

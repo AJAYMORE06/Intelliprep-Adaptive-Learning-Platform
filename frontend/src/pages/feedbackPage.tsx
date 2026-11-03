@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./feedbackPage.css";
-import { apiFetch } from "../services/api";
+import { apiFetch, API_BASE_URL } from "../services/api";
 
 export default function FeedbackPage() {
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ export default function FeedbackPage() {
     }
 
     const token = sessionStorage.getItem("access_token");
-    const API_BASE_URL = "http://localhost:8000";
 
     if (!token) {
       setError("Your session has expired. Please log in again.");
