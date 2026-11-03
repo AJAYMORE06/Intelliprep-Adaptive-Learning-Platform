@@ -1,526 +1,431 @@
-# IntelliPrep – AI-Powered Personalised Technical Interview Preparation
+# IntelliPrep – AI-Powered Adaptive Learning Platform
 
-## 1. About the Project
+An intelligent learning system designed to personalise technical interview preparation through adaptive questioning, AI-powered answer evaluation, targeted feedback and learning progress tracking.
 
-IntelliPrep is an AI-powered intelligent learning system designed to help users prepare for technical interviews through personalised practice, adaptive question difficulty and AI-generated feedback.
+## 1. Project Overview
 
-The application aims to improve interview readiness by identifying knowledge gaps and guiding learners through an adaptive learning experience.
+IntelliPrep is an AI-powered technical interview preparation platform developed as part of an MSc Data Science and Artificial Intelligence dissertation.
 
-### Key Features
+Traditional interview preparation platforms often rely on static question banks and predefined learning paths. IntelliPrep aims to address this limitation through an adaptive learning approach that evaluates a learner's responses, identifies knowledge gaps and provides personalised guidance.
+
+The system follows an adaptive learning workflow:
+
+1. Technical interview question generation
+2. Learner submits an answer
+3. AI-powered answer evaluation
+4. Knowledge gap identification
+5. Contextual feedback and learning hints
+6. Adaptive question progression
+7. Learning progress tracking
+8. Learning outcome evaluation
+
+**Research focus:** Investigating whether AI-generated adaptive feedback and personalised learning pathways can improve technical interview preparedness compared with static preparation resources.
+
+## 2. Key Features
+
+### Student Platform
 
 - User registration and authentication.
 - Personalised technical interview preparation.
-- Python technical question bank.
-- Adaptive question difficulty.
-- AI-powered answer evaluation.
-- Contextual feedback and hints.
-- Learning progress and performance tracking.
-- Student dashboard.
-- Administrator dashboard and performance monitoring.
+- AI-generated technical questions.
+- Questions organised by difficulty.
+- Answer submission and AI-powered evaluation.
+- Feedback highlighting strengths and areas for improvement.
+- Contextual learning hints.
+- Learning session tracking.
+- Performance scores and progress reports.
+- Post-session feedback and usability evaluation.
 
-## 2. Technology Stack
+### Adaptive Learning
+
+IntelliPrep aims to adapt the learning experience based on the learner's performance.
+
+The intended learning workflow incorporates:
+
+- Assessment of submitted answers.
+- Identification of areas requiring improvement.
+- Targeted hints rather than immediately providing complete answers.
+- Progressive question difficulty.
+- Tracking of performance across learning sessions.
+
+### Administrator Dashboard
+
+The administrator dashboard provides an overview of platform activity and student performance.
+
+Features include:
+
+- Platform overview and usage metrics.
+- Student directory.
+- Student learning session history.
+- Individual session reports.
+- Student feedback and usability insights.
+- Technical-stack performance analysis.
+- Comparison of lowest and latest completed assessment scores.
+
+Administrator access is protected through backend authentication and authorisation.
+
+## 3. Technology Stack
 
 | Component | Technology |
 |---|---|
-| Frontend | React.js |
-| Frontend tooling | Vite |
-| Programming language | TypeScript / JavaScript |
-| Backend | Python |
-| Backend framework | FastAPI |
-| Database | PostgreSQL |
+| Frontend | React, TypeScript |
+| Frontend build tool | Vite |
+| Backend | Python, FastAPI |
+| Database | Supabase PostgreSQL |
 | ORM | SQLAlchemy |
-| AI integration | Google Gemini API |
-| API communication | REST API |
+| Database migrations | Alembic |
+| AI integration | Google Gemini |
+| Authentication | JWT-based authentication |
+| Frontend hosting | Vercel |
+| Backend hosting | Render |
+| Version control | Git and GitHub |
 
-## 3. Prerequisites
+## 4. System Architecture
 
-Install the following software before setting up IntelliPrep.
-
-### 3.1 Node.js and npm
-
-Node.js is required to run the React frontend. npm is included with Node.js.
-
-**Download:** https://nodejs.org/
-
-Recommended: Install the current LTS version.
-
-Verify installation:
-
-```bash
-node -v
-npm -v
-```
-
-Both commands should display their installed versions.
-
-### 3.2 Python
-
-Python is required to run the FastAPI backend.
-
-**Download:** https://www.python.org/downloads/
-
-Recommended: Python 3.11 or the version specified by the project dependencies.
-
-Verify installation:
-
-```bash
-python3 --version
-```
-
-### 3.3 PostgreSQL
-
-IntelliPrep uses PostgreSQL as its relational database.
-
-**Download PostgreSQL for macOS:** https://www.postgresql.org/download/macosx/
-
-For macOS, beginners can use the graphical installer provided by EDB.
-
-During installation:
-
-- Install the PostgreSQL server.
-- Install the command-line tools.
-- Set a password for the `postgres` database user.
-- Keep the default port as `5432`, unless it is already occupied.
-- Remember the password because it will be required when connecting the backend.
-
-Verify installation:
-
-```bash
-psql --version
-```
-
-### 3.4 Code Editor
-
-Visual Studio Code is recommended.
-
-**Download:** https://code.visualstudio.com/
-
-## 4. Clone the Repository
-
-Open Terminal and navigate to the directory where you want to store the project.
-
-Clone the repository:
-
-```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
-```
-
-Navigate into the project:
-
-```bash
-cd IntelliPrep
-```
-
-Replace the repository URL with the actual GitHub repository URL.
-
-## 5. Project Structure
-
-The expected project structure is:
+IntelliPrep uses a separate frontend and backend architecture.
 
 ```text
-IntelliPrep/
+                    USER
+                      |
+                      v
+             React + TypeScript
+                 (Vercel)
+                      |
+                HTTPS Requests
+                      |
+                      v
+              FastAPI Backend
+                  (Render)
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+      Supabase     Gemini      Application
+     PostgreSQL      AI          Logic
+          |           |           |
+          +-----------+-----------+
+                      |
+                      v
+             Evaluation Results
+                      |
+                      v
+              React Frontend
+```
+
+### Frontend
+
+The React application provides the student and administrator interfaces. It communicates with the backend through HTTP API requests.
+
+### Backend
+
+The FastAPI application handles:
+
+- Authentication and authorisation.
+- User management.
+- Learning session management.
+- Question generation and evaluation.
+- Feedback processing.
+- Performance calculations.
+- Administrator operations.
+
+### Database
+
+Supabase PostgreSQL stores application data, including user accounts, generated questions, learning attempts, password reset tokens and user feedback.
+
+SQLAlchemy is used for database operations, while Alembic manages database schema migrations.
+
+### AI Integration
+
+Google Gemini is integrated into the learning workflow for AI-powered question generation and answer evaluation.
+
+## 5. Repository Structure
+
+The repository separates the frontend and backend applications.
+
+```text
+Intelliprep-Adaptive-Learning-Platform/
 │
 ├── frontend/
-│   ├── src/
 │   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
 │   ├── package.json
+│   ├── package-lock.json
 │   └── vite.config.ts
 │
 ├── backend/
-│   ├── main.py
-│   ├── requirements.txt
-│   ├── database.py
-│   └── ...
+│   ├── app/
+│   │   ├── dependencies/
+│   │   ├── models/
+│   │   ├── routers/
+│   │   ├── database.py
+│   │   └── main.py
+│   ├── alembic/
+│   ├── alembic.ini
+│   └── requirements.txt
 │
 └── README.md
 ```
 
-> **Note:** These are illustrative folder names. Use the actual directory names from the GitHub repository.
+*Note: This is a high-level representation. Additional project files and directories may exist.*
 
-## 6. Database Setup – PostgreSQL
+## 6. Live Deployment
 
-### Step 1: Start PostgreSQL
+The application is deployed using separate hosting services for the frontend and backend.
 
-On macOS, if PostgreSQL was installed using Homebrew:
+| Service | Platform | Purpose |
+|---|---|---|
+| Frontend | Vercel | Hosts the React application |
+| Backend | Render | Hosts the FastAPI application |
+| Database | Supabase | Managed PostgreSQL database |
+| AI | Google Gemini | AI-powered learning functionality |
+
+### Production Configuration
+
+The frontend communicates with the deployed backend using the `VITE_API_BASE_URL` environment variable.
+
+The backend uses its configured frontend origin for Cross-Origin Resource Sharing (CORS).
+
+The deployed services operate independently of the developer's local machine.
+
+**Deployment considerations:**
+
+- Render's free instance may enter a sleep state after inactivity, resulting in a slower initial request.
+- Vercel serves the frontend application.
+- Supabase provides the persistent database.
+- Production credentials must be configured through environment variables, not committed to GitHub.
+
+## 7. Local Development Setup
+
+### Prerequisites
+
+Install the following:
+
+- Node.js and npm.
+- Python.
+- Git.
+- Access to a configured Supabase PostgreSQL database.
+- A Google Gemini API key.
+
+### Step 1: Clone the Repository
 
 ```bash
-brew services list
+git clone https://github.com/AJAYMORE06/Intelliprep-Adaptive-Learning-Platform.git
+
+cd Intelliprep-Adaptive-Learning-Platform
 ```
 
-Start the appropriate installed PostgreSQL version. For example:
+### Step 2: Configure the Backend
 
-```bash
-brew services start postgresql@16
-```
-
-If you installed PostgreSQL using the EDB graphical installer, start the PostgreSQL server through its installed application or service controls.
-
-Check whether the server is accepting connections:
-
-```bash
-pg_isready
-```
-
-### Step 2: Connect to PostgreSQL
-
-```bash
-psql -U postgres -h localhost -p 5432
-```
-
-Enter your PostgreSQL password when prompted.
-
-### Step 3: Create the IntelliPrep Database
-
-Inside the PostgreSQL command-line interface, execute:
-
-```sql
-CREATE DATABASE intelliprep;
-```
-
-List available databases:
-
-```sql
-\l
-```
-
-Connect to IntelliPrep:
-
-```sql
-\c intelliprep
-```
-
-Exit PostgreSQL:
-
-```sql
-\q
-```
-
-### Step 4: Database Connection
-
-The backend needs a database connection string.
-
-The general PostgreSQL connection format is:
-
-```text
-postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE_NAME
-```
-
-Example:
-
-```text
-postgresql://postgres:your_password@localhost:5432/intelliprep
-```
-
-Use the actual credentials configured during PostgreSQL installation.
-
-## 7. Backend Setup – FastAPI
-
-### Step 1: Navigate to the Backend Directory
+Navigate to the backend directory:
 
 ```bash
 cd backend
 ```
 
-Replace `backend` with the actual backend folder name if different.
+Create and activate a Python virtual environment.
 
-### Step 2: Create a Python Virtual Environment
-
-```bash
-python3 -m venv venv
-```
-
-### Step 3: Activate the Environment
-
-For macOS/Linux:
+**macOS / Linux:**
 
 ```bash
-source venv/bin/activate
+python3 -m venv .venv
+
+source .venv/bin/activate
 ```
 
-For Windows:
+**Windows:**
 
 ```bash
-venv\Scripts\activate
+python -m venv .venv
+
+.venv\Scripts\activate
 ```
 
-### Step 4: Install Dependencies
-
-If the repository contains `requirements.txt`:
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Otherwise, install the dependencies specified by the project's Python dependency configuration.
+Create a `.env` file in the backend directory.
 
-### Step 5: Configure Environment Variables
+Add the environment variables required by the backend application.
 
-Create a `.env` file in the location expected by the backend configuration.
-
-Example configuration:
+Example structure:
 
 ```env
-DATABASE_URL=postgresql://postgres:your_password@localhost:5432/intelliprep
-
+DATABASE_URL=your_database_connection_string
 GEMINI_API_KEY=your_gemini_api_key
-
-SECRET_KEY=your_secure_secret_key
+FRONTEND_URL=your_frontend_origin
 ```
 
-**Important:**
+The names above must be checked against the actual backend configuration before use. Add any additional variables required by the application.
 
-- Use the environment variable names expected by the actual backend code.
-- Obtain a Gemini API key from https://aistudio.google.com/apikey
-- Generate a strong secret key.
-- Never commit `.env` to GitHub.
-- Keep production credentials separate from local development credentials.
+### Step 3: Configure the Database
 
-### Step 6: Start the Backend
+Ensure that your Supabase PostgreSQL database is accessible.
 
-If the FastAPI application entry point is `main.py` and the application variable is `app`:
+Apply the database migrations using Alembic:
 
 ```bash
-uvicorn main:app --reload
+alembic upgrade head
 ```
 
-If your application is inside a package or uses a different entry point, adjust the command accordingly.
+For an existing database whose schema is already in place and whose migration history has been verified, the migration baseline may already be stamped at the current revision.
 
-The backend should become available at:
+Do not blindly run database creation or stamping commands against an existing production database.
+
+### Step 4: Start the Backend
+
+From the backend directory:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+The backend will normally be available at:
 
 ```text
-http://127.0.0.1:8000
+http://localhost:8000
 ```
 
-### Step 7: Access API Documentation
+FastAPI interactive API documentation:
 
-FastAPI provides interactive API documentation.
+```text
+http://localhost:8000/docs
+```
 
-Open:
+Health endpoint:
 
-http://127.0.0.1:8000/docs
+```text
+http://localhost:8000/api/health
+```
 
-You can use this interface to inspect and test available API endpoints.
+### Step 5: Configure the Frontend
 
-## 8. Frontend Setup – React and Vite
-
-Open a second Terminal window.
-
-### Step 1: Navigate to the Frontend Directory
+Open a separate terminal and navigate to the frontend directory:
 
 ```bash
-cd IntelliPrep/frontend
+cd frontend
 ```
 
-Use the actual frontend folder name.
-
-### Step 2: Install npm Dependencies
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-This installs the dependencies listed in `package.json`.
-
-### Step 3: Configure Frontend Environment Variables
-
-If the frontend uses an environment variable for the backend API URL, create the appropriate `.env` file.
-
-For example:
+Create a `.env` file in the frontend directory:
 
 ```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
-The variable name must match the one referenced in your React application.
+This points the frontend to the locally running FastAPI backend.
 
-> Do not place Gemini API keys, database passwords or backend secrets in frontend environment variables. Vite variables are exposed to the browser.
-
-### Step 4: Start the Frontend
+### Step 6: Start the Frontend
 
 ```bash
 npm run dev
 ```
 
-The Vite development server will normally run at:
+Vite normally serves the application at:
 
+```text
 http://localhost:5173
-
-Open the URL in your browser.
-
-## 9. Running the Complete Application
-
-IntelliPrep requires PostgreSQL, the FastAPI backend and the React frontend to be running.
-
-Start each service in a separate Terminal window.
-
-### Terminal 1 – PostgreSQL
-
-Ensure the PostgreSQL server is running:
-
-```bash
-pg_isready
 ```
 
-### Terminal 2 – Backend
+The frontend and backend must both be running for the complete local application to function.
 
-```bash
-cd backend
-source venv/bin/activate
-uvicorn main:app --reload
-```
+## 8. Environment Variables and Security
 
-### Terminal 3 – Frontend
+Environment variables are used to configure the application without hardcoding credentials.
 
-```bash
-cd frontend
-npm run dev
-```
+| Variable | Application | Purpose |
+|---|---|---|
+| `VITE_API_BASE_URL` | Frontend | Backend API base URL |
+| `DATABASE_URL` | Backend | PostgreSQL connection string |
+| `GEMINI_API_KEY` | Backend | Gemini API authentication |
+| `FRONTEND_URL` | Backend | Frontend origin configuration |
 
-Open:
+*Verify the backend variable names against the actual source code and configuration before deployment.*
 
-http://localhost:5173
-
-The frontend communicates with the FastAPI backend, which connects to PostgreSQL and uses the configured Gemini API integration.
-
-## 10. First-Time Usage
-
-Once the application is running:
-
-1. Open the application in your browser.
-2. Register or log in using the available authentication functionality.
-3. Navigate to the student dashboard.
-4. Start a technical interview preparation session.
-5. Attempt the questions presented by the system.
-6. Review the AI-generated evaluation and feedback.
-7. Follow the adaptive question progression.
-8. Review your performance and learning progress.
-
-Administrator functionality is available to authorised administrator accounts.
-
-## 11. Troubleshooting
-
-### Problem: `npm: command not found`
-
-Node.js and npm may not be installed or configured correctly.
-
-Check:
-
-```bash
-node -v
-npm -v
-```
-
-Install Node.js LTS from https://nodejs.org/.
-
-### Problem: `psql: command not found`
-
-PostgreSQL command-line tools may not be installed or available in your PATH.
-
-Check your PostgreSQL installation and command-line tool configuration.
-
-### Problem: PostgreSQL is not accepting connections
-
-Check:
-
-```bash
-pg_isready
-```
-
-On Homebrew installations:
-
-```bash
-brew services list
-```
-
-Start the correct PostgreSQL service if it is stopped.
-
-### Problem: Database connection refused
-
-Check the following:
-
-- PostgreSQL is running.
-- The database exists.
-- The host and port are correct.
-- The database username and password are correct.
-- The backend is loading the correct environment variables.
-
-### Problem: `ModuleNotFoundError`
-
-Ensure the backend virtual environment is activated.
-
-Install the dependencies again:
-
-```bash
-pip install -r requirements.txt
-```
-
-### Problem: Frontend cannot communicate with backend
-
-Check:
-
-- FastAPI is running.
-- The frontend API URL is correct.
-- FastAPI CORS configuration permits the frontend origin.
-- The browser console and backend logs for errors.
-
-### Problem: Gemini API errors
-
-Check:
-
-- The API key is valid.
-- The key is configured in the backend environment.
-- API access and usage limits are available.
-- The backend is reading the correct environment variable.
-
-## 12. Security Guidelines
+### Security Guidelines
 
 - Never commit `.env` files.
 - Never expose database credentials in frontend code.
-- Never expose Gemini API keys in browser-accessible code.
-- Use secure authentication and role-based authorisation.
-- Protect administrator endpoints on the backend.
-- Validate user input on the server.
-- Use HTTPS for production deployment.
-- Back up the PostgreSQL database regularly.
-- Avoid using default or weak passwords.
+- Never expose the Gemini API key to the browser.
+- Keep JWT signing secrets private.
+- Configure CORS for trusted frontend origins.
+- Protect administrator endpoints through backend authorisation.
+- Use environment variables for production credentials.
+- Rotate credentials immediately if they are accidentally exposed.
 
-## 13. Useful Commands
+## 9. Database Management
 
-| Task | Command |
+Supabase PostgreSQL is used as the application's relational database.
+
+The application currently includes the following database entities:
+
+| Table | Purpose |
 |---|---|
-| Check Node.js | `node -v` |
-| Check npm | `npm -v` |
-| Check Python | `python3 --version` |
-| Check PostgreSQL | `psql --version` |
-| Check PostgreSQL status | `pg_isready` |
-| Install frontend dependencies | `npm install` |
-| Run frontend | `npm run dev` |
-| Create virtual environment | `python3 -m venv venv` |
-| Activate virtual environment | `source venv/bin/activate` |
-| Install backend dependencies | `pip install -r requirements.txt` |
-| Run FastAPI | `uvicorn main:app --reload` |
+| `users` | User accounts and administrator status |
+| `generated_questions` | Generated interview questions and session information |
+| `learning_attempts` | Submitted answers, evaluation scores and feedback |
+| `password_reset_tokens` | Password reset functionality |
+| `user_feedback` | Student feedback and usability responses |
 
-## 14. Deployment
+Database schema changes are managed through Alembic migrations.
 
-The application can be deployed using cloud hosting services.
+## 10. API Documentation
 
-A possible deployment architecture is:
+The backend is built using FastAPI.
 
-| Component | Hosting |
-|---|---|
-| React frontend | Vercel |
-| FastAPI backend | Render |
-| PostgreSQL database | Supabase |
-| Source control | GitHub |
+When running locally, interactive API documentation is available at:
 
-Production deployment requires separate environment variables and a production database connection.
+```text
+http://localhost:8000/docs
+```
 
-For academic research, maintain database backups and avoid resetting the production database after participant data collection begins.
+The deployed API documentation is available at:
 
-## 15. Support and Contribution
+```text
+https://intelliprep-adaptive-learning-platform.onrender.com/docs
+```
 
-For development or setup issues, review the repository documentation and application logs.
+The health endpoint can be used to check backend availability:
 
-Contributions, suggestions and improvements are welcome.
+```text
+GET /api/health
+```
 
-**IntelliPrep – Personalised Learning for Better Technical Interview Preparation.**
+API routes are organised into backend routers. Refer to the FastAPI documentation for the complete list of available endpoints and their request and response schemas.
+
+## 11. Testing and Validation
+
+The application should be validated across the following areas before a release:
+
+- User registration and login.
+- Authentication and token refresh.
+- Student and administrator access control.
+- Question generation.
+- Answer submission and evaluation.
+- Adaptive question progression.
+- Learning hints and feedback.
+- Session persistence.
+- Student progress reports.
+- Feedback submission.
+- Administrator dashboard metrics.
+- Student session history.
+- Production frontend-to-backend communication.
+- Database persistence.
+
+Run the frontend production build using:
+
+```bash
+npm run build
+```
+
+Run any configured backend tests using the project's test configuration.
