@@ -53,7 +53,12 @@ export async function apiFetch(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(input, {
+  const url =
+  typeof input === "string" && input.startsWith("/")
+    ? `${API_BASE_URL}${input}`
+    : input;
+
+  const response = await fetch(url, {
     ...init,
     headers,
     credentials: "include",
@@ -76,7 +81,7 @@ export async function apiFetch(
   const retryHeaders = new Headers(init.headers);
   retryHeaders.set("Authorization", `Bearer ${newToken}`);
 
-  return fetch(input, {
+  return fetch(url, {
     ...init,
     headers: retryHeaders,
     credentials: "include",
