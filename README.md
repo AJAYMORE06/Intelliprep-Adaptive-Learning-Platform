@@ -32,15 +32,16 @@ The system follows an adaptive learning workflow:
 - Answer submission and AI-powered evaluation.
 - Feedback highlighting strengths and areas for improvement.
 - Contextual learning hints.
+- Voice-based answer recording and transcription.
 - Learning session tracking.
 - Performance scores and progress reports.
 - Post-session feedback and usability evaluation.
 
 ### Adaptive Learning
 
-IntelliPrep aims to adapt the learning experience based on the learner's performance.
+IntelliPrep adapts the learning experience based on the learner's performance.
 
-The intended learning workflow incorporates:
+The learning workflow incorporates:
 
 - Assessment of submitted answers.
 - Identification of areas requiring improvement.
@@ -75,46 +76,65 @@ Administrator access is protected through backend authentication and authorisati
 | ORM | SQLAlchemy |
 | Database migrations | Alembic |
 | AI integration | Google Gemini |
+| Speech recognition | faster-whisper |
+| Audio processing | FFmpeg, PyAV |
 | Authentication | JWT-based authentication |
 | Frontend hosting | Vercel |
-| Backend hosting | Render |
+| Backend hosting | Oracle Cloud Infrastructure |
+| Web server / Reverse proxy | Nginx |
+| Backend process management | systemd |
+| HTTPS | Let's Encrypt / Certbot |
 | Version control | Git and GitHub |
 
 ## 4. System Architecture
 
 IntelliPrep uses a separate frontend and backend architecture.
 
+The React frontend is hosted on Vercel, while the FastAPI backend runs on an Oracle Cloud virtual machine. Vercel rewrites API requests to the Oracle-hosted backend, maintaining a consistent frontend origin for API communication and authentication cookies.
+
 ```text
-                    USER
-                      |
-                      v
-             React + TypeScript
-                 (Vercel)
-                      |
-                HTTPS Requests
-                      |
-                      v
-              FastAPI Backend
-                  (Render)
-                      |
-          +-----------+-----------+
-          |           |           |
-          v           v           v
-      Supabase     Gemini      Application
-     PostgreSQL      AI          Logic
-          |           |           |
-          +-----------+-----------+
-                      |
-                      v
-             Evaluation Results
-                      |
-                      v
-              React Frontend
+                       USER
+                         |
+                         v
+                React + TypeScript
+                     (Vercel)
+                         |
+                         v
+                 HTTPS API Requests
+                         |
+                         v
+                  Vercel API Rewrite
+                         |
+                         v
+                  Oracle Cloud VM
+                         |
+                         v
+                       Nginx
+                         |
+                         v
+                  FastAPI Backend
+                    (Uvicorn)
+                         |
+          +--------------+--------------+
+          |              |              |
+          v              v              v
+      Supabase        Google         faster-whisper
+     PostgreSQL       Gemini          (Local CPU)
+          |              |              |
+          +--------------+--------------+
+                         |
+                         v
+                 Evaluation Results
+                         |
+                         v
+                  React Frontend
 ```
 
 ### Frontend
 
-The React application provides the student and administrator interfaces. It communicates with the backend through HTTP API requests.
+The React application provides student and administrator interfaces. It communicates with the backend through HTTP API requests.
+
+Vercel hosts the production frontend and forwards `/api/*` requests to the Oracle backend through configured rewrites.
 
 ### Backend
 
@@ -126,7 +146,10 @@ The FastAPI application handles:
 - Question generation and evaluation.
 - Feedback processing.
 - Performance calculations.
+- Speech transcription.
 - Administrator operations.
+
+Uvicorn runs the application locally on the Oracle VM, while Nginx handles incoming HTTPS requests and forwards them to the FastAPI service.
 
 ### Database
 
@@ -134,9 +157,19 @@ Supabase PostgreSQL stores application data, including user accounts, generated 
 
 SQLAlchemy is used for database operations, while Alembic manages database schema migrations.
 
+The database remains externally hosted and is accessed securely by the Oracle backend.
+
 ### AI Integration
 
 Google Gemini is integrated into the learning workflow for AI-powered question generation and answer evaluation.
+
+### Speech Recognition
+
+The application uses `faster-whisper` for locally hosted speech recognition.
+
+The Whisper model runs on the Oracle VM using CPU inference with the `base.en` model and `int8` computation.
+
+Audio is processed by the backend rather than requiring a separate hosted transcription service.
 
 ## 5. Repository Structure
 
@@ -144,28 +177,32 @@ The repository separates the frontend and backend applications.
 
 ```text
 Intelliprep-Adaptive-Learning-Platform/
-│
+|
 ├── frontend/
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   └── services/
+│   │   ├── services/
+│   │   └── types/
 │   ├── package.json
 │   ├── package-lock.json
+│   ├── vercel.json
 │   └── vite.config.ts
-│
+|
 ├── backend/
 │   ├── app/
 │   │   ├── dependencies/
 │   │   ├── models/
 │   │   ├── routers/
+│   │   ├── schemas/
+│   │   ├── services/
 │   │   ├── database.py
 │   │   └── main.py
 │   ├── alembic/
 │   ├── alembic.ini
 │   └── requirements.txt
-│
+|
 └── README.md
 ```
 
@@ -173,29 +210,146 @@ Intelliprep-Adaptive-Learning-Platform/
 
 ## 6. Live Deployment
 
-The application is deployed using separate hosting services for the frontend and backend.
+The production application uses separate hosting services for its frontend and backend.
 
 | Service | Platform | Purpose |
 |---|---|---|
 | Frontend | Vercel | Hosts the React application |
-| Backend | Render | Hosts the FastAPI application |
+| Backend | Oracle Cloud Infrastructure | Hosts the FastAPI application |
+| Reverse proxy | Nginx | Handles HTTPS and forwards API requests |
 | Database | Supabase | Managed PostgreSQL database |
-| AI | Google Gemini | AI-powered learning functionality |
+| AI | Google Gemini | Question generation and answer evaluation |
+| Speech recognition | faster-whisper | Local audio transcription |
+| SSL certificate | Let's Encrypt | HTTPS certificate |
+
+### Production Frontend
+
+The production frontend is deployed on Vercel.
+
+Production URL:
+
+https://intelliprep-adaptive-learning-platf-alpha.vercel.app
+
+The frontend uses the `VITE_API_BASE_URL` environment variable to determine its API base URL.
+
+Production configuration:
+
+```env
+VITE_API_BASE_URL=https://intelliprep-adaptive-learning-platf-alpha.vercel.app
+```
+
+### Vercel API Rewrites
+
+The frontend contains a `vercel.json` configuration that forwards API requests to the Oracle backend.
+
+Example:
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://132.145.51.234/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+The API rewrite must appear before the frontend SPA fallback.
+
+This configuration allows browser requests to use the Vercel domain while the actual API processing takes place on Oracle Cloud.
+
+### Oracle Cloud Backend
+
+The FastAPI backend is hosted on an Oracle Cloud Infrastructure virtual machine.
+
+Deployment environment:
+
+| Property | Configuration |
+|---|---|
+| Cloud provider | Oracle Cloud Infrastructure |
+| Region | London |
+| Operating system | Ubuntu 24.04 LTS |
+| Architecture | ARM64 |
+| Instance shape | VM.Standard.A1.Flex |
+| CPU allocation | 2 OCPUs |
+| Memory allocation | 12 GB |
+| Backend framework | FastAPI |
+| Application server | Uvicorn |
+| Reverse proxy | Nginx |
+
+Production API base URL:
+
+https://132.145.51.234
+
+FastAPI documentation:
+
+https://132.145.51.234/docs
+
+Health endpoint:
+
+https://132.145.51.234/api/health
+
+### Backend Process Management
+
+The FastAPI application runs as a systemd service named:
+
+```text
+intelliprep.service
+```
+
+The service manages the backend process and is configured to start automatically when the VM boots.
+
+Useful service commands:
+
+```bash
+sudo systemctl status intelliprep
+sudo systemctl restart intelliprep
+sudo systemctl stop intelliprep
+sudo systemctl start intelliprep
+```
+
+View application logs:
+
+```bash
+sudo journalctl -u intelliprep -f
+```
+
+### Nginx and HTTPS
+
+Nginx acts as a reverse proxy between incoming HTTPS requests and the local FastAPI application.
+
+The FastAPI application listens on:
+
+```text
+127.0.0.1:8000
+```
+
+Nginx forwards requests to this local address.
+
+HTTPS is configured using a Let's Encrypt IP-address certificate managed through Certbot.
+
+Useful commands:
+
+```bash
+sudo systemctl status nginx
+sudo nginx -t
+sudo systemctl reload nginx
+sudo certbot certificates
+```
+
+Certificate renewal should be verified periodically.
 
 ### Production Configuration
 
-The frontend communicates with the deployed backend using the `VITE_API_BASE_URL` environment variable.
+Production credentials and application settings are stored in environment variables rather than committed to GitHub.
 
-The backend uses its configured frontend origin for Cross-Origin Resource Sharing (CORS).
-
-The deployed services operate independently of the developer's local machine.
-
-**Deployment considerations:**
-
-- Render's free instance may enter a sleep state after inactivity, resulting in a slower initial request.
-- Vercel serves the frontend application.
-- Supabase provides the persistent database.
-- Production credentials must be configured through environment variables, not committed to GitHub.
+The frontend and backend operate independently of the developer's local machine.
 
 ## 7. Local Development Setup
 
@@ -208,6 +362,7 @@ Install the following:
 - Git.
 - Access to a configured Supabase PostgreSQL database.
 - A Google Gemini API key.
+- FFmpeg for audio-processing functionality.
 
 ### Step 1: Clone the Repository
 
@@ -249,33 +404,43 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Install FFmpeg if it is not already available on your system.
+
 Create a `.env` file in the backend directory.
 
-Add the environment variables required by the backend application.
-
-Example structure:
+Example configuration:
 
 ```env
 DATABASE_URL=your_database_connection_string
+
+JWT_SECRET_KEY=your_jwt_secret
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=your_access_token_expiry
+REFRESH_TOKEN_EXPIRE_DAYS=your_refresh_token_expiry
+
 GEMINI_API_KEY=your_gemini_api_key
-FRONTEND_URL=your_frontend_origin
+GEMINI_MODEL=your_gemini_model
+
+RESEND_API_KEY=your_resend_api_key
+EMAIL_FROM=your_verified_sender_address
+
+ENVIRONMENT=development
+FRONTEND_URL=http://localhost:5173
 ```
 
-The names above must be checked against the actual backend configuration before use. Add any additional variables required by the application.
+Use the actual variable names and values required by the backend source code. Never commit the `.env` file.
 
 ### Step 3: Configure the Database
 
 Ensure that your Supabase PostgreSQL database is accessible.
 
-Apply the database migrations using Alembic:
+Apply database migrations when required:
 
 ```bash
 alembic upgrade head
 ```
 
-For an existing database whose schema is already in place and whose migration history has been verified, the migration baseline may already be stamped at the current revision.
-
-Do not blindly run database creation or stamping commands against an existing production database.
+For an existing database whose schema and migration history are already in place, do not blindly run database creation, migration or stamping commands.
 
 ### Step 4: Start the Backend
 
@@ -317,7 +482,7 @@ Install dependencies:
 npm install
 ```
 
-Create a `.env` file in the frontend directory:
+Create a `.env.local` file in the frontend directory:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
@@ -347,10 +512,16 @@ Environment variables are used to configure the application without hardcoding c
 |---|---|---|
 | `VITE_API_BASE_URL` | Frontend | Backend API base URL |
 | `DATABASE_URL` | Backend | PostgreSQL connection string |
+| `JWT_SECRET_KEY` | Backend | JWT signing secret |
+| `JWT_ALGORITHM` | Backend | JWT signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Backend | Access-token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | Backend | Refresh-token lifetime |
 | `GEMINI_API_KEY` | Backend | Gemini API authentication |
+| `GEMINI_MODEL` | Backend | Gemini model configuration |
+| `RESEND_API_KEY` | Backend | Email service authentication |
+| `EMAIL_FROM` | Backend | Configured email sender |
+| `ENVIRONMENT` | Backend | Application environment |
 | `FRONTEND_URL` | Backend | Frontend origin configuration |
-
-*Verify the backend variable names against the actual source code and configuration before deployment.*
 
 ### Security Guidelines
 
@@ -361,6 +532,8 @@ Environment variables are used to configure the application without hardcoding c
 - Configure CORS for trusted frontend origins.
 - Protect administrator endpoints through backend authorisation.
 - Use environment variables for production credentials.
+- Use HTTPS for production API communication.
+- Keep authentication cookies secure and HTTP-only.
 - Rotate credentials immediately if they are accidentally exposed.
 
 ## 9. Database Management
@@ -379,6 +552,8 @@ The application currently includes the following database entities:
 
 Database schema changes are managed through Alembic migrations.
 
+The Oracle-hosted backend connects to the existing Supabase PostgreSQL database. The application does not require a separate database hosted on the Oracle VM.
+
 ## 10. API Documentation
 
 The backend is built using FastAPI.
@@ -389,10 +564,10 @@ When running locally, interactive API documentation is available at:
 http://localhost:8000/docs
 ```
 
-The deployed API documentation is available at:
+The production API documentation is available at:
 
 ```text
-https://intelliprep-adaptive-learning-platform.onrender.com/docs
+https://132.145.51.234/docs
 ```
 
 The health endpoint can be used to check backend availability:
@@ -407,25 +582,136 @@ API routes are organised into backend routers. Refer to the FastAPI documentatio
 
 The application should be validated across the following areas before a release:
 
+### Authentication
+
 - User registration and login.
-- Authentication and token refresh.
+- Refresh-token authentication.
+- Logout and session termination.
 - Student and administrator access control.
+- Password reset and email delivery.
+
+### Learning Workflow
+
 - Question generation.
 - Answer submission and evaluation.
 - Adaptive question progression.
 - Learning hints and feedback.
+- Voice recording and transcription.
 - Session persistence.
 - Student progress reports.
-- Feedback submission.
+
+### Administration
+
 - Administrator dashboard metrics.
 - Student session history.
+- Individual session reports.
+- Student feedback.
+- Technical-stack performance analysis.
+
+### Infrastructure
+
 - Production frontend-to-backend communication.
-- Database persistence.
+- Database connectivity and persistence.
+- HTTPS certificate validity.
+- Backend service availability.
+- Nginx reverse proxy functionality.
 
 Run the frontend production build using:
 
 ```bash
+cd frontend
 npm run build
 ```
 
-Run any configured backend tests using the project's test configuration.
+Run configured backend tests using the project's test configuration.
+
+## 12. Production Deployment and Maintenance
+
+The production environment consists of a Vercel frontend and an Oracle Cloud-hosted FastAPI backend.
+
+### Frontend Deployment
+
+Frontend changes are deployed through Vercel.
+
+Before deployment:
+
+```bash
+cd frontend
+npm run build
+```
+
+Verify that the production environment variables are configured correctly.
+
+### Backend Deployment
+
+Backend changes are deployed to the Oracle Cloud virtual machine.
+
+The deployment process includes:
+
+1. Updating the backend source code.
+2. Installing or updating dependencies when necessary.
+3. Verifying environment configuration.
+4. Testing application imports and configuration.
+5. Restarting the `intelliprep` systemd service.
+6. Checking the application health endpoint.
+7. Reviewing backend logs.
+
+### Useful Operational Commands
+
+Check backend status:
+
+```bash
+sudo systemctl status intelliprep
+```
+
+Restart the backend:
+
+```bash
+sudo systemctl restart intelliprep
+```
+
+Follow backend logs:
+
+```bash
+sudo journalctl -u intelliprep -f
+```
+
+Check Nginx status:
+
+```bash
+sudo systemctl status nginx
+```
+
+Test Nginx configuration:
+
+```bash
+sudo nginx -t
+```
+
+Check disk usage:
+
+```bash
+df -h
+```
+
+Check memory usage:
+
+```bash
+free -h
+```
+
+Check HTTPS certificates:
+
+```bash
+sudo certbot certificates
+```
+
+Production maintenance should include periodic database backups, certificate-renewal checks, application log reviews and Oracle resource monitoring.
+
+---
+
+## 13. Project Objective
+
+IntelliPrep aims to demonstrate how AI-powered evaluation, adaptive questioning, targeted feedback and personalised learning pathways can support technical interview preparation.
+
+The platform combines modern frontend development, cloud-hosted backend infrastructure, relational data management, generative AI and locally hosted speech recognition into an integrated intelligent learning system.
