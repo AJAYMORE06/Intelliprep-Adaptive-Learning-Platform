@@ -23,17 +23,16 @@ def get_whisper_model():
 
     return _model
 
-
 def transcribe_audio(audio_path: str) -> str:
     print("SPEECH: Checking FFmpeg", flush=True)
 
     if shutil.which("ffmpeg") is None:
-        raise RuntimeError("FFmpeg executable not found in system PATH")
+        raise RuntimeError("FFmpeg not found")
 
     print("SPEECH: Loading Whisper model", flush=True)
-
     model = get_whisper_model()
 
+    print("SPEECH: Whisper model loaded successfully", flush=True)
     print("SPEECH: Starting transcription", flush=True)
 
     result = model.transcribe(
