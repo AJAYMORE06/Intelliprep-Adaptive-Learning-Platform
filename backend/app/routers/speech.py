@@ -71,7 +71,9 @@ async def transcribe(file: UploadFile = File(...)):
                 detail="The uploaded audio file is empty.",
             )
 
-        text = transcribe_audio(temp_path)
+        from starlette.concurrency import run_in_threadpool
+
+        text = await run_in_threadpool(transcribe_audio, temp_path)
 
         return {"text": text}
 
