@@ -37,7 +37,6 @@ type ReportData = {
   evaluation_status?: "pending" | "complete" | "failed" | string;
 };
 
-
 const DIFFICULTY_LABELS: Record<string, string> = {
   beginner: "Beginner",
   easy: "Beginner",
@@ -228,7 +227,7 @@ export default function ReportPage() {
     (item): item is QuestionResult & { score: number } => typeof item.score === "number"
   );
   const averageScore = scoredQuestions.length
-    ? (scoredQuestions.reduce((sum, item) => sum + item.score, 0) / scoredQuestions.length*10)
+    ? (scoredQuestions.reduce((sum, item) => sum + item.score, 0) / scoredQuestions.length) * 10
     : null;
   const overallScore = report?.overall_score ?? null;
 

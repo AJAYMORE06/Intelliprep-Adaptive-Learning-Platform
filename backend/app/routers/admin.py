@@ -253,7 +253,9 @@ def get_admin_users(
                 "completed_sessions": sum(
                     1 for item in summaries if item["is_complete"]
                 ),
-                "questions_answered": len(user_attempts) if 'user_attempts' in locals() else (
+                "questions_answered": len(user_attempts)
+                if "user_attempts" in locals()
+                else (
                     db.query(LearningAttempt)
                     .filter(LearningAttempt.user_id == user.id)
                     .count()

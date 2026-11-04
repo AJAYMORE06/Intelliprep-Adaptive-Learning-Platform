@@ -1,5 +1,4 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export const apiUrl = (path: string) => `${API_BASE_URL}${path}`;
 
@@ -10,7 +9,7 @@ export interface HealthResponse {
 
 let refreshPromise: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
@@ -54,9 +53,7 @@ export async function apiFetch(
   }
 
   const url =
-  typeof input === "string" && input.startsWith("/")
-    ? `${API_BASE_URL}${input}`
-    : input;
+    typeof input === "string" && input.startsWith("/") ? `${API_BASE_URL}${input}` : input;
 
   const response = await fetch(url, {
     ...init,

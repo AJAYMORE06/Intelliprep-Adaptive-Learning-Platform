@@ -4,7 +4,6 @@ import "./dashboardPage.css";
 import { Layers, CircleGauge, Check, ArrowUpRight } from "lucide-react";
 import { apiFetch, API_BASE_URL } from "../services/api";
 
-
 type DashboardSession = {
   session_id: string;
   topic: string;
@@ -193,11 +192,11 @@ export default function DashboardPage() {
           {!loading && (
             <div className="session-status-breakdown">
               <span className="session-status-badge completed">
-                {allSession.filter(session => session.completed_at !== null).length} Completed
+                {allSession.filter((session) => session.completed_at !== null).length} Completed
               </span>
 
               <span className="session-status-badge abandoned">
-                {allSession.filter(session => session.completed_at === null).length} Abandoned
+                {allSession.filter((session) => session.completed_at === null).length} Abandoned
               </span>
             </div>
           )}

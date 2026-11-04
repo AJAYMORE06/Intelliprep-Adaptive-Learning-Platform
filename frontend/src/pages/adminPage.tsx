@@ -269,7 +269,7 @@ export default function AdminPage() {
         throw new Error("Unexpected response from the students API.");
       }
 
-    setStudents(body as AdminStudent[]);
+      setStudents(body as AdminStudent[]);
     } catch (err) {
       setStudentsError(err instanceof Error ? err.message : "Unable to load students.");
     } finally {

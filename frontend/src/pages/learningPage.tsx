@@ -22,7 +22,6 @@ interface GenerateQuestionsResponse {
   questions: LearningQuestion[];
 }
 
-
 export default function LearningPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [recording, setRecording] = useState(false);

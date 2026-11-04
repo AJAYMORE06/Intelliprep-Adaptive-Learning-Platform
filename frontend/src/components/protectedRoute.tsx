@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useEffect } from "react";
-import { apiUrl } from "../services/api";
+import { useEffect, useState } from "react";
+import { apiUrl, refreshAccessToken } from "../services/api";
 
 interface ProtectedRouteProps {
   allowedRoles: string[];
@@ -24,6 +24,30 @@ function logout() {
 }
 
 export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession() {
+      let currentToken = sessionStorage.getItem("access_token");
+
+      if (!currentToken) {
+        currentToken = await refreshAccessToken();
+      }
+
+      if (!cancelled) {
+        setAuthChecked(true);
+      }
+    }
+
+    void restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const token = sessionStorage.getItem("access_token");
   const role = sessionStorage.getItem("user_role")?.trim().toLowerCase();
 
@@ -137,6 +161,10 @@ export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [token]);
+
+  if (!authChecked) {
+    return <div>Checking your session...</div>;
+  }
 
   if (!token) {
     return <Navigate to="/login" replace />;

@@ -1,5 +1,5 @@
-
 import os
+
 import resend
 
 
@@ -28,7 +28,7 @@ def send_password_reset_email(
         <p>If you did not request this, you can ignore this email.</p>
 
         <p>IntelliPrep Team</p>
-        """
+        """,
     }
 
     response = resend.Emails.send(params)
