@@ -227,9 +227,21 @@ def get_admin_users(
         user_attempts = (
             db.query(LearningAttempt).filter(LearningAttempt.user_id == user.id).all()
         )
-        scored = [
-            attempt.score for attempt in user_attempts if attempt.score is not None
+
+        # Calculate the average using completed sessions only.
+        completed_session_scores = [
+            item["overall_score"]
+            for item in summaries
+            if item["is_complete"] and item["overall_score"] is not None
         ]
+
+        average_completed_session_score = (
+            round(
+                sum(completed_session_scores) / len(completed_session_scores),
+            )
+            if completed_session_scores
+            else None
+        )
 
         results.append(
             {
@@ -241,13 +253,14 @@ def get_admin_users(
                 "completed_sessions": sum(
                     1 for item in summaries if item["is_complete"]
                 ),
-                "questions_answered": len(user_attempts),
-                "average_question_score": (
-                    round(sum(scored) / len(scored) * 10, 2) if scored else None
+                "questions_answered": len(user_attempts) if 'user_attempts' in locals() else (
+                    db.query(LearningAttempt)
+                    .filter(LearningAttempt.user_id == user.id)
+                    .count()
                 ),
+                "average_question_score": average_completed_session_score,
             }
         )
-
     return results
 
 

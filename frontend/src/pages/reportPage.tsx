@@ -228,7 +228,7 @@ export default function ReportPage() {
     (item): item is QuestionResult & { score: number } => typeof item.score === "number"
   );
   const averageScore = scoredQuestions.length
-    ? scoredQuestions.reduce((sum, item) => sum + item.score, 0) / scoredQuestions.length
+    ? (scoredQuestions.reduce((sum, item) => sum + item.score, 0) / scoredQuestions.length*10)
     : null;
   const overallScore = report?.overall_score ?? null;
 
@@ -358,7 +358,7 @@ export default function ReportPage() {
                 <Target size={26} strokeWidth={1.8} />
               </span>
               <span className="report-stat-label">Average question score</span>
-              <strong>{averageScore === null ? "—" : `${averageScore.toFixed(1)} / 10`}</strong>
+              <strong>{averageScore === null ? "—" : `${averageScore.toFixed(1)} / 100`}</strong>
               <span className="report-stat-caption">
                 {averageScore === null
                   ? "Evaluation is pending"

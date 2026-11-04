@@ -185,9 +185,22 @@ export default function DashboardPage() {
           <span className="dashboard-stat-icon" aria-hidden="true">
             <ArrowUpRight size={30} strokeWidth={1.8} />
           </span>
+
           <p>Total practice sessions</p>
+
           <strong>{loading ? "—" : allSession.length}</strong>
-          <small>Includes completed and abandoned sessions</small>
+
+          {!loading && (
+            <div className="session-status-breakdown">
+              <span className="session-status-badge completed">
+                {allSession.filter(session => session.completed_at !== null).length} Completed
+              </span>
+
+              <span className="session-status-badge abandoned">
+                {allSession.filter(session => session.completed_at === null).length} Abandoned
+              </span>
+            </div>
+          )}
         </article>
       </section>
 

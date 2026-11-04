@@ -557,6 +557,7 @@ def get_learning_dashboard(
     session_ids = set(questions_by_session) | set(attempts_by_session)
 
     sessions = []
+    completed_session_scores = []
 
     for session_id in session_ids:
         questions = questions_by_session.get(session_id, [])
@@ -572,18 +573,21 @@ def get_learning_dashboard(
             1 for question in questions if str(question.id) in completed_question_ids
         )
 
-        # Calculate scores from evaluated answers only.
+        is_complete = total_questions > 0 and completed_count >= total_questions
+
         scored_attempts = [
-            attempt for attempt in session_attempts if attempt.score is not None
+            attempt for attempt in session_attempts
+            if attempt.score is not None
         ]
 
         average_score = (
             sum(attempt.score for attempt in scored_attempts) / len(scored_attempts)
-            if scored_attempts
+            if is_complete and scored_attempts
             else None
         )
 
-        is_complete = total_questions > 0 and completed_count >= total_questions
+        if is_complete and average_score is not None:
+            completed_session_scores.append(average_score)
 
         sessions.append(
             {
@@ -598,13 +602,19 @@ def get_learning_dashboard(
                     else None
                 ),
                 "overall_score": (
-                    round(average_score * 10, 1) if average_score is not None else None
+                    round(average_score * 10, 1)
+                    if average_score is not None
+                    else None
                 ),
                 "questions_completed": completed_count,
                 "total_questions": total_questions,
                 "is_complete": is_complete,
             }
         )
+    dashboard_average_score = (
+    sum(completed_session_scores) / len(completed_session_scores) * 10
+    if completed_session_scores else None
+)
 
     # Most recently active sessions first.
     allSessions = sessions
@@ -616,21 +626,13 @@ def get_learning_dashboard(
 
     completed_sessions = [session for session in sessions if session["is_complete"]]
 
-    all_scored_attempts = [attempt for attempt in attempts if attempt.score is not None]
-
-    average_score = (
-        sum(attempt.score for attempt in all_scored_attempts)
-        / len(all_scored_attempts)
-        * 10
-        if all_scored_attempts
-        else None
-    )
-
     return {
         "sessions_completed": len(completed_sessions),
         "questions_answered": len(attempts),
         "average_score": (
-            round(average_score, 1) if average_score is not None else None
+            round(dashboard_average_score, 1)
+            if dashboard_average_score is not None
+            else None
         ),
         "sessions": allSessions,
     }
