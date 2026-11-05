@@ -26,7 +26,10 @@ from app.schemas.learning import (
     LearningReportResponse,
     ReportQuestion,
 )
-from app.services.geminiService import generate_text
+from app.services.geminiService import (
+    GeminiUnavailableError,
+    generate_text,
+)
 from app.services.services_evaluation import evaluate_answer
 
 logger = logging.getLogger(__name__)
@@ -271,6 +274,12 @@ def generate_question(
         raise HTTPException(
             status_code=502, detail="Gemini returned an invalid question. Please retry."
         ) from None
+    except GeminiUnavailableError:
+        logger.warning("Gemini is temporarily unavailable.")
+        raise HTTPException(
+            status_code=503,
+            detail="Question generation is temporarily unavailable. Please try again in a moment.",
+        ) from None
     except Exception:
         logger.exception("Single-question generation failed.")
         raise HTTPException(
@@ -357,6 +366,12 @@ Do not include Markdown fences, explanations, or extra fields.
         raise HTTPException(
             status_code=502,
             detail="An invalid question set. Please try generating questions again.",
+        ) from None
+    except GeminiUnavailableError:
+        logger.warning("Gemini is temporarily unavailable.")
+        raise HTTPException(
+            status_code=503,
+            detail="Question generation is temporarily unavailable. Please try again in a moment.",
         ) from None
     except Exception:
         logger.exception("Gemini question generation failed.")

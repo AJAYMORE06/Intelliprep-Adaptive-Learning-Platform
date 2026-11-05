@@ -1,7 +1,9 @@
+
 import os
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import errors
 
 load_dotenv()
 
@@ -17,11 +19,22 @@ if not model_name:
 client = genai.Client(api_key=api_key)
 
 
+class GeminiUnavailableError(Exception):
+    """Raised when Gemini is temporarily unavailable."""
+
+
 def generate_text(prompt: str) -> str:
-    response = client.models.generate_content(
-        model=model_name,
-        contents=prompt,
-    )
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+        )
+    except errors.APIError as exc:
+        if getattr(exc, "code", None) in {429, 500, 502, 503, 504}:
+            raise GeminiUnavailableError(
+                "Gemini is temporarily unavailable."
+            ) from exc
+        raise
 
     if not response.text:
         raise RuntimeError("Model returned an empty response.")
